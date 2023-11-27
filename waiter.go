@@ -1,28 +1,28 @@
 package future
 
+import (
+	"sync"
+)
+
 type Waiter interface {
 	Wait()
 	Done()
 }
 
 type waiter struct {
-	c    chan struct{}
-	done bool
+	wg sync.WaitGroup
 }
 
 func NewWaiter() Waiter {
-	return &waiter{
-		c: make(chan struct{}, 1),
-	}
+	w := &waiter{}
+	w.wg.Add(1)
+	return w
 }
 
 func (w *waiter) Wait() {
-	if !w.done {
-		w.c <- <-w.c
-	}
+	w.wg.Wait()
 }
 
 func (w *waiter) Done() {
-	w.c <- struct{}{}
-	w.done = true
+	w.wg.Done()
 }

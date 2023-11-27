@@ -1,40 +1,29 @@
 package future
 
-type Value interface {
-	Future
-	Resolve(interface{}, error)
+type Value[T any] interface {
+	Future[T]
+	Resolve(T, error)
 }
 
-type value struct {
-	value  interface{}
+type value[T any] struct {
+	value  T
 	err    error
 	waiter Waiter
 }
 
-func NewValue() Value {
-	return &value{
+func NewValue[T any]() Value[T] {
+	return &value[T]{
 		waiter: NewWaiter(),
 	}
 }
 
-func (f *value) Wait() (interface{}, error) {
+func (f *value[T]) Wait() (T, error) {
 	f.waiter.Wait()
 	return f.value, f.err
 }
 
-func (f *value) Resolve(value interface{}, err error) {
+func (f *value[T]) Resolve(value T, err error) {
 	f.value = value
 	f.err = err
 	f.waiter.Done()
-}
-
-func (f *value) Then(thenFunc ThenFunc) Future {
-	return Go(func() (interface{}, error) {
-		val, err := f.Wait()
-		if err != nil {
-			return nil, err
-		}
-
-		return thenFunc(val)
-	})
 }

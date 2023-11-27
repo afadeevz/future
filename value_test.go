@@ -2,15 +2,16 @@ package future
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/AlexanderFadeev/myerrors"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestValueWaitAfterResolved(t *testing.T) {
 	t.Parallel()
 
-	v := NewValue()
+	v := NewValue[int]()
 	v.Resolve(42, nil)
 	val, err := v.Wait()
 
@@ -21,7 +22,7 @@ func TestValueWaitAfterResolved(t *testing.T) {
 func TestValueWaitBeforeResolved(t *testing.T) {
 	t.Parallel()
 
-	v := NewValue()
+	v := NewValue[int]()
 
 	go func() {
 		v.Resolve(42, nil)
@@ -35,13 +36,13 @@ func TestValueWaitBeforeResolved(t *testing.T) {
 func TestValueThen(t *testing.T) {
 	t.Parallel()
 
-	v := NewValue()
+	v := NewValue[int]()
 
 	go func() {
 		v.Resolve(42, nil)
 	}()
 
-	val, err := v.Then(func(v interface{}) (interface{}, error) {
+	val, err := Then(v, func(v int) (string, error) {
 		str := fmt.Sprint(v)
 		return str, nil
 	}).Wait()
@@ -53,17 +54,17 @@ func TestValueThen(t *testing.T) {
 func TestValueThenError(t *testing.T) {
 	t.Parallel()
 
-	v := NewValue()
+	v := NewValue[int]()
 
 	go func() {
 		v.Resolve(0, myerrors.New("err"))
 	}()
 
-	val, err := v.Then(func(v interface{}) (interface{}, error) {
+	val, err := Then(v, func(v int) (string, error) {
 		str := fmt.Sprint(v)
 		return str, nil
 	}).Wait()
 
-	assert.Nil(t, val)
+	assert.Equal(t, "", val)
 	assert.NotNil(t, err)
 }
