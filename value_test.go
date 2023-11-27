@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/AlexanderFadeev/myerrors"
+	"github.com/afadeevz/omnierrors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -57,7 +57,7 @@ func TestValueThenError(t *testing.T) {
 	v := NewValue[int]()
 
 	go func() {
-		v.Resolve(0, myerrors.New("err"))
+		v.Resolve(0, omnierrors.New("err"))
 	}()
 
 	val, err := Then(v, func(v int) (string, error) {
